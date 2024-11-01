@@ -1,0 +1,35 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>问答系统</title>
+</head>
+<body>
+    <h1>大模型问答系统</h1>
+    <input type="text" id="question" placeholder="请输入您的问题">
+    <button onclick="askQuestion()">询问</button>
+    <p id="answer">回答将在这里显示</p>
+
+    <script>
+        async function askQuestion() {
+            const question = document.getElementById("question").value;
+
+            try {
+                const response = await fetch("https://notable-gator-thoroughly.ngrok-free.app/ask", {
+
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ question })
+                });
+                const data = await response.json();
+                document.getElementById("answer").innerText = "模型回答：" + data.answer;
+            } catch (error) {
+                document.getElementById("answer").innerText = "出错了，请稍后再试。";
+                console.error("请求失败：", error);
+            }
+        }
+    </script>
+</body>
+</html>
