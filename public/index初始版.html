@@ -2,31 +2,124 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>问答系统</title>
+    <style>
+        /* 全局样式 */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            background-color: #f7f7f7;
+        }
+        h1 {
+            font-size: 2em;
+            text-align: center;
+        }
+        input[type="text"] {
+            width: 90%;
+            max-width: 400px;
+            padding: 10px;
+            font-size: 1em;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        /* 回答卡片样式 */
+        .answer-card {
+            margin-top: 20px;
+            padding: 15px;
+            width: 90%;
+            max-width: 500px;
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-size: 1.1em;
+            color: #333;
+            line-height: 1.6;
+            overflow-y: auto;
+            max-height: 300px; /* 如果内容超过300px高度，启用滚动条 */
+        }
+        /* 卡片中的文本对齐 */
+        pre {
+            white-space: pre-wrap; /* 保持换行 */
+            word-wrap: break-word; /* 长单词换行 */
+        }
+
+        /* 响应式样式：宽度超过600px的设备 */
+        @media (min-width: 600px) {
+            h1 {
+                font-size: 2.5em;
+            }
+            input[type="text"], .answer-card {
+                max-width: 600px; /* 增加宽度以适应桌面端 */
+                font-size: 1.2em; /* 提升字体大小 */
+            }
+            .answer-card {
+                padding: 20px;
+                max-height: 400px; /* 提升回答框的高度 */
+            }
+            button {
+                font-size: 1.2em;
+                padding: 12px 24px;
+            }
+        }
+    </style>
 </head>
 <body>
     <h1>大模型问答系统</h1>
     <input type="text" id="question" placeholder="请输入您的问题">
     <button onclick="askQuestion()">询问</button>
-    <p id="answer">回答将在这里显示</p>
+    <div id="answer" class="answer-card" style="display: none;"></div> <!-- 隐藏的回答卡片 -->
 
     <script>
         async function askQuestion() {
-            const question = document.getElementById("question").value;
+            const question = document.getElementById("question").value.trim();
+            if (!question) {
+                alert("请输入问题！");
+                return;
+            }
+
+            const baseUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://llm-web.onrender.com';
+            const answerElement = document.getElementById("answer");
+            answerElement.innerHTML = "正在加载...";
+            answerElement.style.display = "block";
 
             try {
-                const response = await fetch("https://notable-gator-thoroughly.ngrok-free.app/ask", {
-
+                const response = await fetch(`${baseUrl}/ask`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({ question })
                 });
+
+                if (!response.ok) {
+                    throw new Error("请求失败，状态码：" + response.status);
+                }
+
                 const data = await response.json();
-                document.getElementById("answer").innerText = "模型回答：" + data.answer;
+                answerElement.innerHTML = `<pre>${data.answer}</pre>`;
             } catch (error) {
-                document.getElementById("answer").innerText = "出错了，请稍后再试。";
+                answerElement.innerHTML = "出错了，请稍后再试。";
                 console.error("请求失败：", error);
             }
         }
