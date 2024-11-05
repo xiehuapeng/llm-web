@@ -66,6 +66,7 @@
     <h1>大模型问答系统</h1>
     <input type="text" id="question" placeholder="请输入您的问题">
     <button onclick="askQuestion()">询问</button>
+	<div id="loading" style="display: none;">加载中...</div> <!-- 加载提示 -->
     <div id="answer" class="answer-card" style="display: none;"></div>
 
     <script>
@@ -74,6 +75,14 @@
             const baseUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://llm-web.onrender.com';
 
             const answerElement = document.getElementById("answer");
+			const loadingElement = document.getElementById("loading");
+			
+			// 如果问题为空，提醒用户
+            if (!question.trim()) {
+                alert("请输入一个问题！");
+                return;
+            }
+			loadingElement.style.display = "block"; // 显示加载中
             answerElement.innerHTML = ""; // 清空之前的回答
             answerElement.style.display = "block"; // 显示回答卡片
 
@@ -91,6 +100,7 @@
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder("utf-8");
+				loadingElement.style.display = "none";
 
                 while (true) {
                     const { done, value } = await reader.read();
