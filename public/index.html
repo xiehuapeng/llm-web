@@ -10,42 +10,63 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             margin: 0;
             padding: 20px;
             min-height: 100vh;
             background-color: #f7f7f7;
-        }
-        h1 {
-            font-size: 2em;
-            text-align: center;
-        }
-        .input-container {
+            overflow-x: hidden;
             position: relative;
-            width: 90%;
-            max-width: 400px;
         }
-        input[type="text"] {
+
+        #logo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: block;
+            z-index: 1000;
+        }
+
+        #logo img {
+            width: 800px;
+            height: auto;
+        }
+
+        #chat-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
             width: 100%;
+            max-width: 800px;
+            margin-bottom: 80px;
+            overflow-y: auto;
+            flex-grow: 1;
+            padding-bottom: 20px;
+        }
+
+        .input-container {
+            position: fixed;
+            bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+            padding: 0 20px;
+            background-color: #f7f7f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        input[type="text"] {
+            width: 80%;
             padding: 10px;
             font-size: 1em;
-            margin-bottom: 10px;
             border-radius: 5px;
             border: 1px solid #ddd;
             box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
         }
-        .clear-btn {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1.2em;
-            color: #aaa;
-            cursor: pointer;
-        }
-        .clear-btn:hover {
-            color: #333;
-        }
+
         button {
             padding: 10px 20px;
             font-size: 1em;
@@ -55,39 +76,58 @@
             border: none;
             cursor: pointer;
             transition: all 0.3s ease-in-out;
+            margin-left: 10px;
         }
+
         button:hover {
             background-color: #45a049;
             transform: scale(1.05);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-        .answer-card {
-            margin-top: 20px;
-            padding: 15px;
-            width: 90%;
-            max-width: 500px;
-            background-color: #ffffff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            font-size: 1.1em;
+
+        .message {
+            margin: 10px 0;
+            display: flex;
+            align-items: flex-start;
+            max-width: 100%;
+        }
+
+        .message.user {
+            justify-content: flex-start;
+        }
+
+        .message.assistant {
+            justify-content: flex-end;
+        }
+
+        .bubble {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 1em;
+            line-height: 1.5;
+        }
+
+        .user .bubble {
+            background-color: #e0e0e0;
             color: #333;
-            line-height: 1.6;
-            overflow-y: auto;
-            max-height: 300px;
+            border-radius: 15px 15px 0 15px;
         }
-        pre {
-            white-space: pre-wrap;
-            word-wrap: break-word;
+
+        .assistant .bubble {
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 15px 15px 15px 0;
         }
+
         #loading {
             display: none;
             font-size: 1.2em;
             color: #333;
             margin-top: 10px;
-            display: none;
             align-items: center;
         }
+
         .spinner {
             border: 4px solid rgba(0, 0, 0, 0.1);
             border-top: 4px solid #4CAF50;
@@ -97,119 +137,231 @@
             animation: spin 1s linear infinite;
             margin-right: 10px;
         }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        /* 响应式布局 */
-        @media screen and (max-width: 768px) {
-            h1 {
-                font-size: 2em;
+
+        h1 {
+            font-size: 2.5em;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: bold;
+            background: linear-gradient(to right, #4CAF50, #81C784);
+            -webkit-background-clip: text;
+            color: transparent;
+            text-align: center;
+            margin-bottom: 40px;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+            animation: fadeInTitle 2s ease-in-out;
+        }
+
+        @keyframes fadeInTitle {
+            0% {
+                opacity: 0;
+                transform: translateY(-50px);
             }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 向下箭头的样式 */
+        .scroll-down {
+            cursor: pointer;
+            font-size: 30px;
+            color: #007BFF;  /* 蓝色 */
+            position: fixed;
+            bottom: 80px; /* 保持在输入框上方一点点 */
+            transition: transform 0.3s ease-in-out;
+            z-index: 999;
+            display: block; /* 初始显示 */
+        }
+
+        .scroll-down:hover {
+            transform: scale(1.1);
+            color: #0056b3;  /* 深蓝色，增加悬停时的效果 */
+        }
+
+        @media screen and (max-width: 768px) {
             input[type="text"] {
                 width: 80%;
             }
+
             button {
                 width: 80%;
             }
-            .answer-card {
-                width: 80%;
-                max-width: none;
+
+            .message {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .scroll-down {
+                font-size: 25px;
             }
         }
     </style>
 </head>
 <body>
-    <h1>大模型问答系统</h1>
+    <div id="logo">
+        <img src="logo.png" alt="Logo">
+    </div>
+
+    <div id="chat-container">
+        <h1>大模型问答系统</h1>
+        <!-- 问答内容区域 -->
+    </div>
+
+    <!-- 向下箭头 -->
+    <div class="scroll-down" onclick="scrollToBottom()">↓</div>
+
     <div class="input-container">
         <input type="text" id="question" placeholder="请输入您的问题">
-        <span class="clear-btn" onclick="clearInput()">×</span> <!-- 清空按钮 -->
+        <button onclick="askQuestion()">询问</button>
     </div>
-    <button onclick="askQuestion()">询问</button>
+
     <div id="loading">
         <div class="spinner"></div>加载中...
     </div>
-    <div id="answer" class="answer-card" style="display: none;"></div>
 
-    <script>
-        // 清空输入框
-        function clearInput() {
-            document.getElementById("question").value = "";
+<script>
+    // 清空输入框
+    function clearInput() {
+        document.getElementById("question").value = "";
+    }
+
+    // 提交问题函数
+    async function askQuestion() {
+        const question = document.getElementById("question").value;
+        const baseUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://llm-web.onrender.com';
+
+        const loadingElement = document.getElementById("loading");
+        const chatContainer = document.getElementById("chat-container");
+        const logo = document.getElementById("logo");
+		const askButton = document.querySelector("button");  // 获取询问按钮
+
+        // 如果问题为空，提醒用户
+        if (!question.trim()) {
+            alert("请输入一个问题！");
+            return;
         }
 
-        async function askQuestion() {
-            const question = document.getElementById("question").value;
-            const baseUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://llm-web.onrender.com';
+        askButton.disabled = true;
+		askButton.textContent = "回答中...";
+		loadingElement.style.display = "flex"; // 显示加载中
 
-            const answerElement = document.getElementById("answer");
-            const loadingElement = document.getElementById("loading");
+        // 创建一个新的用户提问的消息
+        const userMessage = document.createElement('div');
+        userMessage.className = 'message user';
+        userMessage.innerHTML = `<div class="bubble">${question}</div>`;
+        chatContainer.appendChild(userMessage);
 
-            // 如果问题为空，提醒用户
-            if (!question.trim()) {
-                alert("请输入一个问题！");
-                return;
-            }
+        // 清空输入框
+        document.getElementById("question").value = "";
 
-            loadingElement.style.display = "flex"; // 显示加载中
-            answerElement.innerHTML = ""; // 清空之前的回答
-            answerElement.style.display = "none"; // 隐藏回答卡片
+        // 自动滚动到底部
+        chatContainer.scrollTop = chatContainer.scrollHeight;
 
-            let lastText = ""; // 记录上一次的完整文本
-            let bufferedText = ""; // 用于缓存未完成的 JSON 数据
+        // 隐藏logo
+        logo.style.display = "none";
 
-            try {
-                const response = await fetch(`${baseUrl}/ask`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ question })
-                });
+        let lastText = ""; // 记录上一次的完整文本
+        let bufferedText = ""; // 用于缓存未完成的 JSON 数据
 
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder("utf-8");
+        // 创建一个新的助理回复的消息
+        const assistantMessage = document.createElement('div');
+        assistantMessage.className = 'message assistant';
+        assistantMessage.innerHTML = `<div class="bubble" id="answer-${Date.now()}"></div>`;
+        chatContainer.appendChild(assistantMessage);
 
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
+        const answerTextElement = assistantMessage.querySelector('div');
 
-                    bufferedText += decoder.decode(value, { stream: true });
-                    answerElement.style.display = "block"; // 显示回答卡片
-                    loadingElement.style.display = "none"; // 隐藏加载中
+        try {
+            const response = await fetch(`${baseUrl}/ask`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ question })
+            });
 
-                    // 按行处理接收到的数据
-                    const lines = bufferedText.split('\n');
-                    for (let i = 0; i < lines.length - 1; i++) { // 忽略最后一行，因为可能是未完整的数据
-                        let line = lines[i].trim();
-                        if (line.startsWith('data:')) {
-                            const jsonLine = line.slice(5).trim();
-                            if (jsonLine && jsonLine !== "[DONE]") {
-                                try {
-                                    const parsedData = JSON.parse(jsonLine);
-                                    const currentText = parsedData.token.text;
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder("utf-8");
 
-                                    // 找出新增的部分文本
-                                    const newText = currentText.slice(lastText.length);
-                                    answerElement.innerHTML += newText; // 只添加新内容
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
 
-                                    lastText = currentText; // 更新 lastText
-                                } catch (error) {
-                                    console.error("解析失败:", error);
-                                }
+                bufferedText += decoder.decode(value, { stream: true });
+                answerTextElement.style.display = "block"; // 显示回答区域
+                loadingElement.style.display = "none"; // 隐藏加载中
+
+                // 按行处理接收到的数据
+                const lines = bufferedText.split('\n');
+                for (let i = 0; i < lines.length - 1; i++) { // 忽略最后一行，因为可能是未完整的数据
+                    let line = lines[i].trim();
+                    if (line.startsWith('data:')) {
+                        const jsonLine = line.slice(5).trim();
+                        if (jsonLine && jsonLine !== "[DONE]") {
+                            try {
+                                const parsedData = JSON.parse(jsonLine);
+                                const currentText = parsedData.token.text;
+
+                                // 找出新增的部分文本
+                                const newText = currentText.slice(lastText.length);
+                                answerTextElement.innerHTML += newText; // 只添加新内容
+
+                                lastText = currentText; // 更新 lastText
+                            } catch (error) {
+                                console.error("解析失败:", error);
                             }
                         }
                     }
-
-                    // 保留最后一行到 bufferedText，以防止解析不完整的 JSON 数据
-                    bufferedText = lines[lines.length - 1];
                 }
 
-                loadingElement.style.display = "none"; // 隐藏加载中
-            } catch (error) {
-                console.error("请求失败：", error);
-                answerElement.innerHTML = "出错了，请稍后再试。";
+                // 保留最后一行到 bufferedText，以防止解析不完整的 JSON 数据
+                bufferedText = lines[lines.length - 1];
             }
+
+            // 自动滚动到底部
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            window.scrollTo(0, document.body.scrollHeight);
+			askButton.disabled = false;
+			askButton.textContent = "询问";
+
+        } catch (error) {
+            console.error("请求失败：", error);
+            answerTextElement.innerHTML = "出错了，请稍后再试。";
         }
-    </script>
+    }
+
+    // 监听输入框按键事件，按Enter键也能提交问题
+    document.getElementById("question").addEventListener("keydown", function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault(); // 防止换行
+            askQuestion(); // 调用提问函数
+        }
+    });
+
+    // 向下滚动页面
+    function scrollToBottom() {
+        const chatContainer = document.getElementById("chat-container");
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    // 检查是否接近底部来控制箭头显示
+    window.addEventListener('scroll', function () {
+        const scrollDown = document.querySelector('.scroll-down');
+        if (document.body.scrollHeight - window.innerHeight - window.scrollY <= 100) {
+            scrollDown.style.display = 'none';  // 隐藏箭头
+        } else {
+            scrollDown.style.display = 'block';  // 显示箭头
+        }
+    });
+</script>
+
 </body>
 </html>

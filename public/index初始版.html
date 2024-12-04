@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>问答系统</title>
     <style>
-        /* 全局样式 */
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -21,14 +20,31 @@
             font-size: 2em;
             text-align: center;
         }
-        input[type="text"] {
+        .input-container {
+            position: relative;
             width: 90%;
             max-width: 400px;
+        }
+        input[type="text"] {
+            width: 100%;
             padding: 10px;
             font-size: 1em;
             margin-bottom: 10px;
             border-radius: 5px;
             border: 1px solid #ddd;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+        }
+        .clear-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2em;
+            color: #aaa;
+            cursor: pointer;
+        }
+        .clear-btn:hover {
+            color: #333;
         }
         button {
             padding: 10px 20px;
@@ -38,11 +54,13 @@
             color: white;
             border: none;
             cursor: pointer;
+            transition: all 0.3s ease-in-out;
         }
         button:hover {
             background-color: #45a049;
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-        /* 回答卡片样式 */
         .answer-card {
             margin-top: 20px;
             padding: 15px;
@@ -56,52 +74,88 @@
             color: #333;
             line-height: 1.6;
             overflow-y: auto;
-            max-height: 300px; /* 如果内容超过300px高度，启用滚动条 */
+            max-height: 300px;
         }
-        /* 卡片中的文本对齐 */
         pre {
-            white-space: pre-wrap; /* 保持换行 */
-            word-wrap: break-word; /* 长单词换行 */
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
-
-        /* 响应式样式：宽度超过600px的设备 */
-        @media (min-width: 600px) {
+        #loading {
+            display: none;
+            font-size: 1.2em;
+            color: #333;
+            margin-top: 10px;
+            display: none;
+            align-items: center;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* 响应式布局 */
+        @media screen and (max-width: 768px) {
             h1 {
-                font-size: 2.5em;
+                font-size: 2em;
             }
-            input[type="text"], .answer-card {
-                max-width: 600px; /* 增加宽度以适应桌面端 */
-                font-size: 1.2em; /* 提升字体大小 */
-            }
-            .answer-card {
-                padding: 20px;
-                max-height: 400px; /* 提升回答框的高度 */
+            input[type="text"] {
+                width: 80%;
             }
             button {
-                font-size: 1.2em;
-                padding: 12px 24px;
+                width: 80%;
+            }
+            .answer-card {
+                width: 80%;
+                max-width: none;
             }
         }
     </style>
 </head>
 <body>
     <h1>大模型问答系统</h1>
-    <input type="text" id="question" placeholder="请输入您的问题">
+    <div class="input-container">
+        <input type="text" id="question" placeholder="请输入您的问题">
+        <span class="clear-btn" onclick="clearInput()">×</span> <!-- 清空按钮 -->
+    </div>
     <button onclick="askQuestion()">询问</button>
-    <div id="answer" class="answer-card" style="display: none;"></div> <!-- 隐藏的回答卡片 -->
+    <div id="loading">
+        <div class="spinner"></div>加载中...
+    </div>
+    <div id="answer" class="answer-card" style="display: none;"></div>
 
     <script>
+        // 清空输入框
+        function clearInput() {
+            document.getElementById("question").value = "";
+        }
+
         async function askQuestion() {
-            const question = document.getElementById("question").value.trim();
-            if (!question) {
-                alert("请输入问题！");
+            const question = document.getElementById("question").value;
+            const baseUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://llm-web.onrender.com';
+
+            const answerElement = document.getElementById("answer");
+            const loadingElement = document.getElementById("loading");
+
+            // 如果问题为空，提醒用户
+            if (!question.trim()) {
+                alert("请输入一个问题！");
                 return;
             }
 
-            const baseUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://llm-web.onrender.com';
-            const answerElement = document.getElementById("answer");
-            answerElement.innerHTML = "正在加载...";
-            answerElement.style.display = "block";
+            loadingElement.style.display = "flex"; // 显示加载中
+            answerElement.innerHTML = ""; // 清空之前的回答
+            answerElement.style.display = "none"; // 隐藏回答卡片
+
+            let lastText = ""; // 记录上一次的完整文本
+            let bufferedText = ""; // 用于缓存未完成的 JSON 数据
 
             try {
                 const response = await fetch(`${baseUrl}/ask`, {
@@ -112,15 +166,48 @@
                     body: JSON.stringify({ question })
                 });
 
-                if (!response.ok) {
-                    throw new Error("请求失败，状态码：" + response.status);
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    bufferedText += decoder.decode(value, { stream: true });
+                    answerElement.style.display = "block"; // 显示回答卡片
+                    loadingElement.style.display = "none"; // 隐藏加载中
+
+                    // 按行处理接收到的数据
+                    const lines = bufferedText.split('\n');
+                    for (let i = 0; i < lines.length - 1; i++) { // 忽略最后一行，因为可能是未完整的数据
+                        let line = lines[i].trim();
+                        if (line.startsWith('data:')) {
+                            const jsonLine = line.slice(5).trim();
+                            if (jsonLine && jsonLine !== "[DONE]") {
+                                try {
+                                    const parsedData = JSON.parse(jsonLine);
+                                    const currentText = parsedData.token.text;
+
+                                    // 找出新增的部分文本
+                                    const newText = currentText.slice(lastText.length);
+                                    answerElement.innerHTML += newText; // 只添加新内容
+
+                                    lastText = currentText; // 更新 lastText
+                                } catch (error) {
+                                    console.error("解析失败:", error);
+                                }
+                            }
+                        }
+                    }
+
+                    // 保留最后一行到 bufferedText，以防止解析不完整的 JSON 数据
+                    bufferedText = lines[lines.length - 1];
                 }
 
-                const data = await response.json();
-                answerElement.innerHTML = `<pre>${data.answer}</pre>`;
+                loadingElement.style.display = "none"; // 隐藏加载中
             } catch (error) {
-                answerElement.innerHTML = "出错了，请稍后再试。";
                 console.error("请求失败：", error);
+                answerElement.innerHTML = "出错了，请稍后再试。";
             }
         }
     </script>
