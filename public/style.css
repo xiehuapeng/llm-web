@@ -9,19 +9,20 @@ body {
     min-height: 100vh;
     background-color: #f7f7f7;
     overflow-x: hidden;
+	overflow-y: auto;
 }
 
 #logo {
     width: 100%;
     display: flex;
     justify-content: center;
-    padding-top: 20vh;  /* 使用视口高度单位，避免 logo 遮挡标题 */
+    padding-top: 11vh;  /* 使用视口高度单位，避免 logo 遮挡标题 */
     z-index: 10;
 }
 
 #logo img {
     width: 90%;  /* logo 宽度为父容器的 90% */
-    max-width: 800px;  /* 最大宽度限制 */
+    max-width: 700px;  /* 最大宽度限制 */
     height: auto;  /* 高度自适应 */
 }
 
@@ -61,7 +62,7 @@ h1 {
     justify-content: flex-start;
     width: 100%;
     max-width: 800px;
-    margin-top: 20vh;  /* 让内容从标题下面开始，避免与 logo 重叠 */
+    margin-top: 10vh;  /* 让内容从标题下面开始，避免与 logo 重叠 */
     margin-bottom: 80px;
     overflow-y: auto;
     flex-grow: 1;
@@ -74,7 +75,7 @@ h1 {
     bottom: 20px;
     width: 100%;
     max-width: 800px;
-    padding: 0 20px;
+    padding: 0 10px;
     background-color: #f7f7f7;
     display: flex;
     justify-content: center;

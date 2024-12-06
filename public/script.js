@@ -80,6 +80,8 @@
                                 answerTextElement.innerHTML += newText; // 只添加新内容
 
                                 lastText = currentText; // 更新 lastText
+								chatContainer.scrollTop = chatContainer.scrollHeight;
+								window.scrollTo(0, document.body.scrollHeight);
                             } catch (error) {
                                 console.error("解析失败:", error);
                             }

@@ -17,7 +17,7 @@ const user = 'sharpencmiot';
 const password = 'Xhpws123';
 
 let access_keys = {};
-const HISTORY_LIMIT = 5;
+const HISTORY_LIMIT = 6;
 let conversation_history = [];
 
 console.log("服务器启动中...");
@@ -61,6 +61,7 @@ async function useModel(input_text, res) {
     }
 
     const inputs = conversation_history.join("\n") + "\nAssistant:";
+	console.log("shuru"+ "\n" + inputs+ "\n");
     const data = {
         inputs: inputs,
         parameters: {
@@ -69,6 +70,10 @@ async function useModel(input_text, res) {
     };
 
     const response = await axios.post(modelUrl, data, { headers, responseType: 'stream' });
+	
+	let fullResponse = '';
+	let currentLine = '';  // 用于拼接未完成的字符串
+	
     response.data.on('data', (chunk) => {
         const lines = chunk.toString().split('\n');
         lines.forEach(line => {
@@ -76,15 +81,36 @@ async function useModel(input_text, res) {
                 const jsonLine = line.slice(5).trim();
                 if (jsonLine) {
                     res.write(`data: ${jsonLine}\n\n`);
+					try {
+                        // 拼接当前数据块
+                        currentLine += jsonLine;
+                        
+                        // 如果当前行是一个有效的 JSON 字符串且以 '}' 结尾
+                        if (currentLine.endsWith('}')) {
+                            const parsedData = JSON.parse(currentLine);  // 解析为 JSON
+                            const tokenText = parsedData.token.text;
+                            //console.log('Parsed data:', parsedData);
+                            fullResponse = tokenText;  // 累积返回内容
+                            currentLine = '';  // 重置拼接内容
+                            
+                        }
+                    } catch (error) {
+                        //console.error('JSON 解析错误:', error.message);
+                    }
+				
+					
                 }
             }
         });
     });
 
     response.data.on('end', () => {
-        res.write('event: end\ndata: [DONE]\n\n');
+        conversation_history.push(`Assistant: ${fullResponse}`);
+		//console.log(fullResponse);
+		res.write('event: end\ndata: [DONE]\n\n');
         res.end();
     });
+	
 
     response.data.on('error', (error) => {
         console.error("请求失败:", error);
